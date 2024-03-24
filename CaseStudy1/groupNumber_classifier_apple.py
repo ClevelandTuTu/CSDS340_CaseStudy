@@ -156,4 +156,4 @@ for criteria in criterion:
 
 print("Best of Logistic Regression Accuracy: ", logistic_regression_highest_accuracy, "reg: ", best_reg, ", C: ", lr_C)
 print("Best of SVM Accuracy: ", svc_highest_accuracy, " kernel: ", best_kernel, ", C: ", SVM_C)
-print("Best of Decision Tree Accuracy: ", decision_tree_accuracy, "criteria: ", criteria, ", max depth: ", best_max_depth)
+print("Best of Decision Tree Accuracy: ", decision_tree_accuracy, "criteria: ", best_criteria, ", max depth: ", best_max_depth)
