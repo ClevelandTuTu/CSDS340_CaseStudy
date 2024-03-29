@@ -26,7 +26,7 @@ def decision_tree(train_data, train_label, test_data, test_label, criterion, max
     dt.fit(train_data, train_label)
     return dt.score(test_data, test_label)
 
-def tune_models(train_data_path, save_file_path):
+def tune_models(train_data_path):
 
     df = pd.read_csv(train_data_path)
     labels = df.pop(df.columns[len(df.columns) - 1])
@@ -159,21 +159,10 @@ def tune_models(train_data_path, save_file_path):
     print("Best of Logistic Regression Accuracy: ", logistic_regression_highest_accuracy, "reg: ", best_reg, ", C: ", lr_C)
     print("Best of SVM Accuracy: ", svc_highest_accuracy, " kernel: ", best_kernel, ", C: ", SVM_C)
     print("Best of Decision Tree Accuracy: ", decision_tree_accuracy, "criteria: ", best_criteria, ", max depth: ", best_max_depth)
-    if logistic_regression_highest_accuracy>=svc_highest_accuracy and logistic_regression_highest_accuracy>=decision_tree_accuracy:
-        file = open(save_file_path, 'w+')
-        file.write("{},{},{}".format("logreg", best_reg, lr_C))
-    elif svc_highest_accuracy>=logistic_regression_highest_accuracy and svc_highest_accuracy>=decision_tree_accuracy:
-        file = open(save_file_path, 'w+')
-        file.write("{},{},{}".format("svm", best_kernel, SVM_C))
-    else:
-        file = open(save_file_path, 'w+')
-        file.write("{},{},{}".format("dtree", best_criteria, best_max_depth))
 
-def test_best_model(train_data_path, test_data_path, model_info_path):
-    if not os.path.exists(model_info_path):
-        print("Must perform validation before testing")
-        return
-    model_info = np.loadtxt(model_info_path,dtype=str,delimiter=',')
+
+def test_best_model(train_data_path, test_data_path):
+    model_info = ["svm","rbf","10"]
     #print(model_info)
     model = None
     if model_info[0] =="logreg":
@@ -217,8 +206,8 @@ def test_best_model(train_data_path, test_data_path, model_info_path):
     print("Test Accuracy: {:.2f}%".format(test_acc*100))
     return test_acc
     
-tune_models('./Data/train.csv','./best_models.csv')
-test_best_model('./Data/train.csv','./Data/test.csv','./best_models.csv')
+tune_models('./Data/train.csv')
+test_best_model('./Data/train.csv','./Data/test.csv')
     
 
     
