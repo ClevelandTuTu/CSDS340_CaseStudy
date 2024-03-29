@@ -26,7 +26,7 @@ def decision_tree(train_data, train_label, test_data, test_label, criterion, max
     dt.fit(train_data, train_label)
     return dt.score(test_data, test_label)
 
-def train_models(train_data_path, save_file_path):
+def tune_models(train_data_path, save_file_path):
 
     df = pd.read_csv(train_data_path)
     labels = df.pop(df.columns[len(df.columns) - 1])
@@ -217,7 +217,7 @@ def test_best_model(train_data_path, test_data_path, model_info_path):
     print("Test Accuracy: {:.2f}%".format(test_acc*100))
     return test_acc
     
-train_models('./Data/train.csv','./best_models.csv')
+tune_models('./Data/train.csv','./best_models.csv')
 test_best_model('./Data/train.csv','./Data/test.csv','./best_models.csv')
     
 
