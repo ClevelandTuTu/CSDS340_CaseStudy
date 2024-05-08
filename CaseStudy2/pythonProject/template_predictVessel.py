@@ -46,7 +46,7 @@ def evaluate():
     print(f'Adjusted Rand Index Score of set3.csv: {rand_index_score:.4f}')
 
 
-def predictor(csv_path):
+def predictor(csv_path, dist_metric = "euclidean", linkage_type = "single"):
     # load data and convert hh:mm:ss to seconds
     df = pd.read_csv(csv_path, converters={'SEQUENCE_DTTM': hh_mm_ss2seconds})
     # select features
@@ -61,20 +61,39 @@ def predictor(csv_path):
     k_with_lowest_var = None
     labels_true = pd.read_csv(csv_path)['VID'].to_numpy()
     for K in range(6,30):
-        model = AgglomerativeClustering(n_clusters=K, metric="euclidean", linkage="single")
+        model = AgglomerativeClustering(n_clusters=K, metric=dist_metric, linkage=linkage_type)
         # model = KMeans(n_clusters=K, random_state=123, n_init='auto')
         # predict cluster numbers of each sample
         labels_pred = model.fit_predict(X)
-        variance = evaluate_K(X, labels_pred, K)
-        if variance < lowest_var:
-            lowest_var = variance
+        var_sil = evaluate_K(X, labels_pred, K)
+        if var_sil< lowest_var:
+            lowest_var = var_sil
             model_with_lowest_var = model
             k_with_lowest_var = K
         rand_index_score = adjusted_rand_score(labels_true, labels_pred)
-        print("K: ", K, "; variance: ", variance, "; score: ", rand_index_score)
+        print("K: ", K, "; var: ", var_sil, "; score: ", rand_index_score)
     print("Best K: ", k_with_lowest_var)
     return model_with_lowest_var.fit_predict(X)
 
+def hyper_parameter_tuning(csv_path):
+    linkage_options = ['single','complete','average','ward']
+    metric_options = ['euclidean','manhattan','cosine']
+    labels_true = pd.read_csv(csv_path)['VID'].to_numpy()
+    max_score = -1*float('inf')
+    best_params = ('single','euclidean')
+    for linkage in linkage_options:
+        for metric in metric_options:
+            if linkage == 'ward' and metric !='euclidean':
+                continue
+            labels_pred = predictor(csv_path,dist_metric=metric,linkage_type=linkage)
+            rand_index_score = adjusted_rand_score(labels_true, labels_pred)
+            if rand_index_score> max_score:
+                max_score = rand_index_score
+                best_params = (linkage,metric)
+    print(f'best linkage: {best_params[0]} best metric: {best_params[1]}')
+    labels_pred = predictor(csv_path,dist_metric=best_params[1],linkage_type=best_params[0])
+    print(f'Adjusted Rand Index Score of {csv_path}: {adjusted_rand_score(labels_true,labels_pred):.4f}')
+    return best_params[0], best_params[1]
 
 def evaluate_K(X, labels, K):
     indices_all = np.argsort(labels)
@@ -107,6 +126,8 @@ def feature_extraction(X):
 
 if __name__=="__main__":
     get_baseline_score()
+    hyper_parameter_tuning('./Data/set2.csv')
     evaluate()
+    
 
 
