@@ -39,14 +39,15 @@ def get_baseline_score():
 
 
 def evaluate():
-    csv_path = './Data/set1.csv'
+    csv_path = './Data/set2.csv'
     labels_true = pd.read_csv(csv_path)['VID'].to_numpy()
     labels_pred = predictor(csv_path)
     rand_index_score = adjusted_rand_score(labels_true, labels_pred)
     print(f'Adjusted Rand Index Score of set3.csv: {rand_index_score:.4f}')
+    return rand_index_score
 
 
-def predictor(csv_path, dist_metric = "euclidean", linkage_type = "single"):
+def predictor(csv_path, dist_metric = "cosine", linkage_type = "complete"):
     # load data and convert hh:mm:ss to seconds
     df = pd.read_csv(csv_path, converters={'SEQUENCE_DTTM': hh_mm_ss2seconds})
     # select features
@@ -54,7 +55,7 @@ def predictor(csv_path, dist_metric = "euclidean", linkage_type = "single"):
     X = df[selected_features].to_numpy()
     # Standardization
     X = preprocessing.StandardScaler().fit(X).transform(X)
-    # X = feature_extraction(X)
+    X = feature_extraction(X)
     # k-means with K = number of unique VIDs of set1
     lowest_var = float("inf")
     model_with_lowest_var = None
@@ -121,13 +122,38 @@ def feature_extraction(X):
     pca.fit(X)
     return pca.transform(X)
 
+def feature_selection(csv_path):
+    labels_true = pd.read_csv(csv_path)['VID'].to_numpy()
+    features = ['SEQUENCE_DTTM', 'LAT', 'LON', 'SPEED_OVER_GROUND', 'COURSE_OVER_GROUND']
+    for col in range(len(features)):
+        best_result = 0
+        selected_feature = features[:col] + features[col+1:]
+        df = pd.read_csv(csv_path, converters={'SEQUENCE_DTTM': hh_mm_ss2seconds})
+        X = df[selected_feature].to_numpy()
+        # Standardization
+        X = preprocessing.StandardScaler().fit(X).transform(X)
+        lowest_var = float("inf")
+        # model_with_lowest_var = None
+        k_with_lowest_var = None
+        rand_index_score = None
+        for K in range(6,30):
+            model = AgglomerativeClustering(n_clusters=K, metric='cosine', linkage='complete')
+            labels_pred = model.fit_predict(X)
+            var_sil = evaluate_K(X, labels_pred, K)
+            if var_sil < lowest_var:
+                lowest_var = var_sil
+                # model_with_lowest_var = model
+                k_with_lowest_var = K
+                rand_index_score = adjusted_rand_score(labels_true, labels_pred)
 
+        print("dropped ", features[col], "; score: ", rand_index_score, "; k:", k_with_lowest_var)
 
 
 if __name__=="__main__":
     get_baseline_score()
-    hyper_parameter_tuning('./Data/set2.csv')
+    #hyper_parameter_tuning('./Data/set2.csv')
     evaluate()
+    #feature_selection('./Data/set1.csv')
     
 
 
