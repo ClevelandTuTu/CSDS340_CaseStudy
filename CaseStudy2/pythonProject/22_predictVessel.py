@@ -39,7 +39,7 @@ def get_baseline_score():
 
 
 def evaluate():
-    csv_path = './Data/set2.csv'
+    csv_path = './Data/set3.csv'
     labels_true = pd.read_csv(csv_path)['VID'].to_numpy()
     labels_pred = predictor(csv_path, dist_metric="cosine", linkage_type='complete')
     rand_index_score = adjusted_rand_score(labels_true, labels_pred)
@@ -55,7 +55,7 @@ def predictor(csv_path, dist_metric = "cosine", linkage_type = "complete"):
     X = df[selected_features].to_numpy()
     # Standardization
     X = preprocessing.StandardScaler().fit(X).transform(X)
-    X = feature_extraction(X)
+    # X = feature_extraction(X)
     # k-means with K = number of unique VIDs of set1
     lowest_var = float("inf")
     model_with_lowest_var = None
