@@ -41,7 +41,7 @@ def get_baseline_score():
 def evaluate():
     csv_path = './Data/set2.csv'
     labels_true = pd.read_csv(csv_path)['VID'].to_numpy()
-    labels_pred = predictor(csv_path)
+    labels_pred = predictor(csv_path, dist_metric="cosine", linkage_type='complete')
     rand_index_score = adjusted_rand_score(labels_true, labels_pred)
     print(f'Adjusted Rand Index Score of set3.csv: {rand_index_score:.4f}')
     return rand_index_score
@@ -114,7 +114,8 @@ def evaluate_K(X, labels, K):
         sil_means[cluster_index] = np.mean(cluster_sil)
     # print("indices labels:", indices_label)
     # print("sil means:", sil_means)
-    return np.var(sil_means)
+    var = np.sum(np.power(sil_means-np.mean(silhouette_values),2))/(K-1)
+    return var
 
 
 def feature_extraction(X):
